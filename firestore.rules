@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /productos/{id} {
+      allow read, create, update, delete: if signedIn();
+    }
+
+    match /movimientos/{id} {
+      allow read, create: if signedIn();
+      allow update, delete: if false;
+    }
+  }
+}
