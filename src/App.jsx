@@ -90,11 +90,11 @@ function App() {
 
   const ig =
     import.meta.env.VITE_INSTAGRAM_URL ||
-    "https://www.instagram.com/";
+    "https://www.instagram.com/rgbeautyspa/";
 
   const wa =
     import.meta.env.VITE_WHATSAPP_URL ||
-    "https://wa.me/56900000000";
+    "https://wa.me/56976304273";
 
 
   useEffect(() => {
