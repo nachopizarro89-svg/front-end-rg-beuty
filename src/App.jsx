@@ -26,7 +26,6 @@ import { hasConfig } from "./firebase";
 import {
   observeAuth,
   loginUser,
-  registerUser,
   logoutUser,
 } from "./auth";
 
@@ -39,46 +38,45 @@ import {
   updateProduct,
 } from "./inventory";
 
-
-const demo = [
-  {
-    id: "d1",
-    nombre: "Serum Facial",
-    sku: "SKU-001",
-    categoria: "Skincare",
-    stock: 42,
-  },
-  {
-    id: "d2",
-    nombre: "Mascarilla Capilar",
-    sku: "SKU-002",
-    categoria: "Cabello",
-    stock: 18,
-  },
-  {
-    id: "d3",
-    nombre: "Gloss Hidratante",
-    sku: "SKU-003",
-    categoria: "Maquillaje",
-    stock: 7,
-  },
-  {
-    id: "d4",
-    nombre: "Brocha Facial",
-    sku: "SKU-004",
-    categoria: "Accesorios",
-    stock: 26,
-  },
-];
-
+// SIN FUNCIÓN ACTUAL
+//       const demo = [
+//         {
+//           id: "d1",
+//           nombre: "Serum Facial",
+//           sku: "SKU-001",
+//           categoria: "Skincare",
+//           stock: 42,
+//         },
+//         {
+//           id: "d2",
+//           nombre: "Mascarilla Capilar",
+//           sku: "SKU-002",
+//           categoria: "Cabello",
+//           stock: 18,
+//         },
+//         {
+//           id: "d3",
+//           nombre: "Gloss Hidratante",
+//           sku: "SKU-003",
+//           categoria: "Maquillaje",
+//           stock: 7,
+//         },
+//         {
+//           id: "d4",
+//           nombre: "Brocha Facial",
+//           sku: "SKU-004",
+//           categoria: "Accesorios",
+//           stock: 26,
+//         },
+//       ];
+// 
 
 function App() {
   const [user, setUser] = useState(undefined);
-  const [mode, setMode] = useState("login");
   const [authError, setAuthError] = useState("");
   const [sec, setSec] = useState("inicio");
 
-  const [ps, setPs] = useState(demo);
+  const [ps, setPs] = useState([]);
   const [ms, setMs] = useState([]);
 
   const [q, setQ] = useState("");
@@ -111,7 +109,7 @@ function App() {
         getMovements(),
       ]);
 
-      setPs(p.length ? p : demo);
+      setPs(p);
       setMs(m);
     } catch (e) {
       console.error(e);
@@ -335,6 +333,20 @@ function App() {
   }
 
 
+
+
+  if (!hasConfig) {
+    return (
+      <div className="loading-screen">
+        <h2>RG Beauty</h2>
+        <p>
+          Firebase no está configurado.
+          No es posible acceder al inventario.
+        </p>
+      </div>
+    );
+  }
+
   if (user === undefined) {
     return (
       <div className="loading-screen">
@@ -344,11 +356,9 @@ function App() {
   }
 
 
-  if (hasConfig && !user) {
+  if (!user) {
     return (
       <AuthScreen
-        mode={mode}
-        setMode={setMode}
         error={authError}
         setError={setAuthError}
       />
@@ -945,183 +955,85 @@ function App() {
 }
 
 
-function AuthScreen({
-  mode,
-  setMode,
-  error,
-  setError,
-}) {
-  const [name, setName] = useState("");
+function AuthScreen({ error, setError }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function submit(e) {
     e.preventDefault();
-
     setError("");
     setLoading(true);
 
     try {
-      if (mode === "login") {
-        await loginUser(
-          email,
-          password
-        );
-      } else {
-        await registerUser(
-          name,
-          email,
-          password
-        );
-      }
+      await loginUser(email, password);
     } catch (err) {
-
       setError(
-        err.code ===
-          "auth/invalid-credential"
+        err.code === "auth/invalid-credential"
           ? "Correo o contraseña incorrectos."
-          : err.code ===
-            "auth/email-already-in-use"
-          ? "Ese correo ya está registrado."
-          : err.code ===
-            "auth/weak-password"
-          ? "La contraseña debe tener al menos 6 caracteres."
           : err.message
       );
-
     } finally {
       setLoading(false);
     }
   }
 
-
   return (
     <div className="auth-page">
-
       <div className="auth-card">
+        <div className="auth-logo">RG</div>
 
-        <div className="auth-logo">
-          RG
-        </div>
+        <label>RG BEAUTY SPA</label>
 
-        <label>
-          RG BEAUTY SPA
-        </label>
+        <h1>Gestión de Inventario</h1>
 
-        <h1>
-          Gestión de Inventario
-        </h1>
-
-        <p>
-          {mode === "login"
-            ? "Inicia sesión para administrar el inventario."
-            : "Crea tu cuenta para comenzar."}
-        </p>
-
+        <p>Inicia sesión para administrar el inventario.</p>
 
         <div className="auth-security">
           <LockKeyhole size={17} />
-
-          Acceso protegido con
-          Firebase Authentication
+          Acceso protegido con Firebase Authentication
         </div>
 
-
         <form onSubmit={submit}>
-
-          {mode === "register" && (
-            <Field l="Nombre">
-              <input
-                required
-                value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
-                placeholder="Tu nombre"
-              />
-            </Field>
-          )}
-
-
           <Field l="Correo electrónico">
-
             <input
               required
               type="email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="correo@ejemplo.cl"
             />
-
           </Field>
 
-
           <Field l="Contraseña">
-
             <input
               required
               type="password"
-              minLength="6"
               value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
-              }
-              placeholder="Mínimo 6 caracteres"
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contraseña"
             />
-
           </Field>
 
-
           {error && (
-            <div className="auth-error">
-              {error}
-            </div>
+            <div className="auth-error">{error}</div>
           )}
-
 
           <button
             className="primary full"
             disabled={loading}
           >
-            {loading
-              ? "Procesando..."
-              : mode === "login"
-              ? "Iniciar sesión"
-              : "Crear cuenta"}
+            {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>
-
         </form>
-
-
-        <button
-          className="link-button"
-          onClick={() => {
-            setError("");
-
-            setMode(
-              mode === "login"
-                ? "register"
-                : "login"
-            );
-          }}
-        >
-          {mode === "login"
-            ? "¿No tienes cuenta? Crear cuenta"
-            : "Ya tengo una cuenta"}
-        </button>
-
       </div>
-
     </div>
   );
 }
+
+
+
+
 
 
 function Stat({ i, t, a, v, s }) {
